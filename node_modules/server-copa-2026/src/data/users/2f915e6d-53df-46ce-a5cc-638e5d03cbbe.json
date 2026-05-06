@@ -1,0 +1,47 @@
+{
+  "userId": "2f915e6d-53df-46ce-a5cc-638e5d03cbbe",
+  "grupos": {
+    "MEX": {
+      "coletadas": [
+        1,
+        5,
+        10,
+        15,
+        20
+      ],
+      "duplicatas": {
+        "1": 1,
+        "5": 1
+      }
+    },
+    "ARG": {
+      "coletadas": [
+        3,
+        7,
+        12
+      ],
+      "duplicatas": {
+        "7": 1
+      }
+    },
+    "GLOBAL_FW": {
+      "coletadas": [
+        1,
+        19,
+        10,
+        2,
+        5
+      ],
+      "duplicatas": {}
+    },
+    "GLOBAL_CC": {
+      "coletadas": [
+        2,
+        7,
+        14
+      ],
+      "duplicatas": {}
+    }
+  },
+  "lastUpdated": "2026-05-05T17:02:37.937Z"
+}

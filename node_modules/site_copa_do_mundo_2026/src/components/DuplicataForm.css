@@ -1,0 +1,158 @@
+.duplicata-form {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.duplicata-form-header {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.duplicata-form-header h3 {
+  margin: 0 0 5px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.duplicata-form-header p {
+  margin: 0;
+  font-size: 13px;
+  color: #999;
+}
+
+.duplicata-teams-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.no-collection {
+  text-align: center;
+  color: #ccc;
+  padding: 20px;
+  font-style: italic;
+}
+
+.duplicata-team-section {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #eee;
+}
+
+.team-toggle {
+  width: 100%;
+  padding: 12px 15px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.team-toggle:hover {
+  opacity: 0.9;
+}
+
+.expand-arrow {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.duplicata-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 10px;
+  padding: 15px;
+  background: #f8f9ff;
+}
+
+.duplicata-item-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background: white;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  transition: all 0.2s ease;
+}
+
+.duplicata-item-form:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.1);
+}
+
+.dup-label {
+  font-weight: 700;
+  font-size: 14px;
+  color: #667eea;
+}
+
+.dup-add-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.dup-add-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.dup-add-btn:active {
+  transform: scale(0.95);
+}
+
+.duplicata-form-hint {
+  background: #f0f7ff;
+  border-left: 4px solid #667eea;
+  padding: 12px 15px;
+  border-radius: 4px;
+}
+
+.duplicata-form-hint p {
+  margin: 0;
+  font-size: 13px;
+  color: #444;
+  line-height: 1.5;
+}
+
+.duplicata-form-hint strong {
+  color: #667eea;
+}
+
+@media (max-width: 768px) {
+  .duplicata-form {
+    padding: 15px;
+  }
+
+  .duplicata-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .duplicata-item-form {
+    padding: 8px;
+  }
+}

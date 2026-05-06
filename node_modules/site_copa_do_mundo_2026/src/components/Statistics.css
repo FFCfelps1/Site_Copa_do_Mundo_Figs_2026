@@ -1,0 +1,125 @@
+.statistics {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.stats-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+  font-size: 16px;
+}
+
+.stats-overview,
+.stats-by-group,
+.stats-by-selection {
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stats-overview h2,
+.stats-by-group h2,
+.stats-by-selection h2 {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.stat-card {
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.stat-card h3 {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 15px 0;
+}
+
+.stat-percent {
+  margin: 10px 0 0 0;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.groups-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.group-stat-card {
+  padding: 15px;
+  background: #f8f9ff;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.group-stat-card h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #333;
+  font-weight: 600;
+}
+
+.stat-items {
+  font-size: 16px;
+  font-weight: 700;
+  color: #667eea;
+  margin: 5px 0 10px 0;
+}
+
+.group-stat-card .stat-percent {
+  margin: 8px 0 0 0;
+  font-size: 12px;
+  color: #999;
+}
+
+.special-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.special-stat-card {
+  padding: 15px;
+  background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+  border-radius: 8px;
+  color: white;
+}
+
+.special-stat-card h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.special-stat-card .stat-items {
+  color: white;
+  font-size: 18px;
+}
+
+@media (max-width: 768px) {
+  .groups-stats-grid,
+  .special-stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+}

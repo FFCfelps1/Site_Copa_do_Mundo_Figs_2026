@@ -1,0 +1,17 @@
+{
+  "name": "server-copa-2026",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Backend API for Copa 2026 sticker tracker",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.0"
+  }
+}

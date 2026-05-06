@@ -1,0 +1,160 @@
+.duplicatas-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.duplicatas-list-section {
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.duplicatas-list-section h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.duplicatas-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.duplicatas-empty p {
+  margin: 10px 0;
+}
+
+.empty-hint {
+  font-size: 12px;
+  color: #ccc;
+}
+
+.duplicatas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.duplicatas-team {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.team-header {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.team-header:hover {
+  opacity: 0.9;
+}
+
+.team-name {
+  flex: 1;
+  text-align: left;
+}
+
+.dup-count {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  margin: 0 10px;
+}
+
+.expand-icon {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.duplicatas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  padding: 15px;
+  background: #f8f9ff;
+}
+
+.dup-item {
+  padding: 10px;
+  background: white;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.dup-number {
+  font-weight: 700;
+  font-size: 14px;
+  color: #667eea;
+}
+
+.dup-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.dup-btn {
+  flex: 1;
+  padding: 6px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #667eea;
+  transition: all 0.2s ease;
+}
+
+.dup-btn:hover {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.dup-count-display {
+  min-width: 20px;
+  text-align: center;
+  font-weight: 700;
+  color: #333;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .duplicatas-section {
+    gap: 15px;
+  }
+
+  .duplicatas-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+
+  .team-header {
+    flex-wrap: wrap;
+  }
+
+  .team-name {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+}
