@@ -5,7 +5,12 @@ import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const usersDir = path.join(__dirname, 'data', 'users');
+const dataRoot = process.env.VERCEL ? '/tmp' : __dirname;
+const usersDir = path.join(dataRoot, 'data', 'users');
+
+export function getUsersDir() {
+  return usersDir;
+}
 
 // Garantir que o diretório de usuários existe
 if (!fs.existsSync(usersDir)) {

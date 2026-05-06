@@ -4,12 +4,13 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import bcrypt from 'bcryptjs';
-import { createUser, getUserById, saveFigurinhas, getUserFile } from './db.js';
+import { createUser, getUserById, saveFigurinhas, getUsersDir } from './db.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3000;
+const usersDir = getUsersDir();
 
 // Middleware
 app.use(cors());
@@ -62,7 +63,6 @@ app.post('/api/auth/register', (req, res) => {
     const user = createUser(email, password);
     
     // Salvar hash de senha em arquivo separado
-    const usersDir = path.join(__dirname, 'data', 'users');
     const credFile = path.join(usersDir, `${user.id}-cred.json`);
     fs.writeFileSync(credFile, JSON.stringify({
       userId: user.id,
@@ -90,7 +90,6 @@ app.post('/api/auth/login', (req, res) => {
     }
 
     // Buscar usuário por email
-    const usersDir = path.join(__dirname, 'data', 'users');
     const indexFile = path.join(usersDir, 'index.json');
     
     if (!fs.existsSync(indexFile)) {
@@ -435,7 +434,11 @@ app.get('/api/health', (req, res) => {
 });
 
 // Iniciar servidor
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📋 Grupos loaded: ${grupos.length}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📋 Grupos loaded: ${grupos.length}`);
+  });
+}
+
+export default app;
