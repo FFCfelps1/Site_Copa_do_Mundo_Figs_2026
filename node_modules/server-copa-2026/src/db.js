@@ -3,13 +3,30 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
+import { Redis } from '@upstash/redis';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataRoot = process.env.VERCEL ? '/tmp' : __dirname;
 const usersDir = path.join(dataRoot, 'data', 'users');
+const kvConfigured = Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+const storageType = kvConfigured ? 'kv' : 'file';
+const redis = kvConfigured ? Redis.fromEnv() : null;
+const usersIndexKey = 'users:index';
+
+function getUserDataKey(userId) {
+  return `users:${userId}:figurinhas`;
+}
+
+function getUserCredKey(userId) {
+  return `users:${userId}:cred`;
+}
 
 export function getUsersDir() {
   return usersDir;
+}
+
+export function getStorageType() {
+  return storageType;
 }
 
 // Garantir que o diretório de usuários existe
@@ -20,7 +37,12 @@ if (!fs.existsSync(usersDir)) {
 // Arquivo de índice de usuários
 const usersIndexFile = path.join(usersDir, 'index.json');
 
-function getUsersIndex() {
+async function getUsersIndex() {
+  if (storageType === 'kv') {
+    const index = await redis.get(usersIndexKey);
+    return index || {};
+  }
+
   if (!fs.existsSync(usersIndexFile)) {
     return {};
   }
@@ -31,7 +53,12 @@ function getUsersIndex() {
   }
 }
 
-function saveUsersIndex(index) {
+async function saveUsersIndex(index) {
+  if (storageType === 'kv') {
+    await redis.set(usersIndexKey, index);
+    return;
+  }
+
   fs.writeFileSync(usersIndexFile, JSON.stringify(index, null, 2), 'utf-8');
 }
 
@@ -39,8 +66,8 @@ export function getUserFile(userId) {
   return path.join(usersDir, `${userId}.json`);
 }
 
-export function createUser(email, password) {
-  const usersIndex = getUsersIndex();
+export async function createUser(email, password) {
+  const usersIndex = await getUsersIndex();
   
   // Verificar se email já existe
   if (Object.values(usersIndex).some(u => u.email === email)) {
@@ -48,17 +75,8 @@ export function createUser(email, password) {
   }
 
   const userId = uuidv4();
-  const hashedPassword = bcrypt.hashSync(password, 10);
   const now = new Date().toISOString();
-
-  // Criar estrutura do usuário
-  const user = {
-    id: userId,
-    email,
-    passwordHash: hashedPassword,
-    createdAt: now,
-    updatedAt: now
-  };
+  const passwordHash = bcrypt.hashSync(password, 10);
 
   // Criar arquivo de figurinhas do usuário
   const figurinhas = {
@@ -75,14 +93,22 @@ export function createUser(email, password) {
   };
 
   // Salvar
-  fs.writeFileSync(getUserFile(userId), JSON.stringify(figurinhas, null, 2), 'utf-8');
-  saveUsersIndex(usersIndex);
+  if (storageType === 'kv') {
+    await redis.set(getUserDataKey(userId), figurinhas);
+    await redis.set(getUserCredKey(userId), { userId, passwordHash, updatedAt: now });
+  } else {
+    fs.writeFileSync(getUserFile(userId), JSON.stringify(figurinhas, null, 2), 'utf-8');
+    const credFile = path.join(usersDir, `${userId}-cred.json`);
+    fs.writeFileSync(credFile, JSON.stringify({ userId, passwordHash }, null, 2), 'utf-8');
+  }
+
+  await saveUsersIndex(usersIndex);
 
   return { id: userId, email, createdAt: now };
 }
 
-export function validateUser(email, password) {
-  const usersIndex = getUsersIndex();
+export async function validateUser(email, password) {
+  const usersIndex = await getUsersIndex();
   const userId = Object.entries(usersIndex).find(
     ([_, u]) => u.email === email
   )?.[0];
@@ -91,17 +117,16 @@ export function validateUser(email, password) {
     return null;
   }
 
+  if (storageType === 'kv') {
+    const cred = await redis.get(getUserCredKey(userId));
+    if (cred?.passwordHash && bcrypt.compareSync(password, cred.passwordHash)) {
+      return { id: userId, email };
+    }
+    return null;
+  }
+
   // Ler o arquivo do usuário para obter o hash da senha
   try {
-    const filePath = getUserFile(userId);
-    if (!fs.existsSync(filePath)) {
-      return null;
-    }
-    
-    const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-    
-    // Buscar informação de senha (pode estar em outro local, vamos adicionar)
-    // Por enquanto vamos procurar na pasta de usuários por um arquivo de credenciais
     const credFile = path.join(usersDir, `${userId}-cred.json`);
     if (fs.existsSync(credFile)) {
       const cred = JSON.parse(fs.readFileSync(credFile, 'utf-8'));
@@ -116,7 +141,11 @@ export function validateUser(email, password) {
   return null;
 }
 
-export function getUserById(userId) {
+export async function getUserById(userId) {
+  if (storageType === 'kv') {
+    return (await redis.get(getUserDataKey(userId))) || null;
+  }
+
   try {
     const filePath = getUserFile(userId);
     if (!fs.existsSync(filePath)) {
@@ -128,8 +157,14 @@ export function getUserById(userId) {
   }
 }
 
-export function saveFigurinhas(userId, figurinhas) {
-  const filePath = getUserFile(userId);
+export async function saveFigurinhas(userId, figurinhas) {
   figurinhas.lastUpdated = new Date().toISOString();
+
+  if (storageType === 'kv') {
+    await redis.set(getUserDataKey(userId), figurinhas);
+    return;
+  }
+
+  const filePath = getUserFile(userId);
   fs.writeFileSync(filePath, JSON.stringify(figurinhas, null, 2), 'utf-8');
 }

@@ -1,16 +1,15 @@
 import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
+import { createUser, getUserById, saveFigurinhas, validateUser, getStorageType } from './db.js';
+import { v4 as uuidv4 } from 'uuid';
+
 import path from 'path';
 import { fileURLToPath } from 'url';
-import bcrypt from 'bcryptjs';
-import { createUser, getUserById, saveFigurinhas, getUsersDir } from './db.js';
-import { v4 as uuidv4 } from 'uuid';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3000;
-const usersDir = getUsersDir();
 
 // Middleware
 app.use(cors());
@@ -43,7 +42,7 @@ loadGrupos();
 
 // ==================== AUTH ROUTES ====================
 
-app.post('/api/auth/register', (req, res) => {
+app.post('/api/auth/register', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -60,14 +59,7 @@ app.post('/api/auth/register', (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
     }
 
-    const user = createUser(email, password);
-    
-    // Salvar hash de senha em arquivo separado
-    const credFile = path.join(usersDir, `${user.id}-cred.json`);
-    fs.writeFileSync(credFile, JSON.stringify({
-      userId: user.id,
-      passwordHash: bcrypt.hashSync(password, 10)
-    }, null, 2), 'utf-8');
+    const user = await createUser(email, password);
 
     res.status(201).json({ 
       user: { id: user.id, email: user.email },
@@ -77,11 +69,11 @@ app.post('/api/auth/register', (req, res) => {
     if (err.message.includes('already registered')) {
       return res.status(409).json({ error: 'Email already registered' });
     }
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err?.message || 'Internal server error' });
   }
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -89,41 +81,21 @@ app.post('/api/auth/login', (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Buscar usuário por email
-    const indexFile = path.join(usersDir, 'index.json');
-    
-    if (!fs.existsSync(indexFile)) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    const index = JSON.parse(fs.readFileSync(indexFile, 'utf-8'));
-    const userId = Object.entries(index).find(([_, u]) => u.email === email)?.[0];
-
-    if (!userId) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    // Verificar senha
-    const credFile = path.join(usersDir, `${userId}-cred.json`);
-    if (!fs.existsSync(credFile)) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    const cred = JSON.parse(fs.readFileSync(credFile, 'utf-8'));
-    if (!bcrypt.compareSync(password, cred.passwordHash)) {
+    const user = await validateUser(email, password);
+    if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     // Criar sessão
     const sessionId = uuidv4();
-    sessions.set(sessionId, userId);
+    sessions.set(sessionId, user.id);
 
     res.json({ 
       sessionId,
-      user: { id: userId, email }
+      user: { id: user.id, email: user.email }
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err?.message || 'Internal server error' });
   }
 });
 
@@ -151,21 +123,21 @@ app.get('/api/grupos/:grupoId', (req, res) => {
 
 // ==================== FIGURINHAS ROUTES ====================
 
-app.get('/api/figurinhas', verifySession, (req, res) => {
+app.get('/api/figurinhas', verifySession, async (req, res) => {
   try {
-    const user = getUserById(req.userId);
+    const user = await getUserById(req.userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
     res.json(user);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err?.message || 'Internal server error' });
   }
 });
 
-app.get('/api/figurinhas/:selecionId', verifySession, (req, res) => {
+app.get('/api/figurinhas/:selecionId', verifySession, async (req, res) => {
   try {
-    const user = getUserById(req.userId);
+    const user = await getUserById(req.userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -173,12 +145,12 @@ app.get('/api/figurinhas/:selecionId', verifySession, (req, res) => {
     const selecionFigs = user.grupos[req.params.selecionId] || { base: [], fw: [], cc: [] };
     res.json(selecionFigs);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err?.message || 'Internal server error' });
   }
 });
 
 // Toggle figurinha
-app.post('/api/figurinhas/toggle', verifySession, (req, res) => {
+app.post('/api/figurinhas/toggle', verifySession, async (req, res) => {
   try {
     const { selecionId, tipo, numero } = req.body;
 
@@ -190,7 +162,7 @@ app.post('/api/figurinhas/toggle', verifySession, (req, res) => {
       return res.status(400).json({ error: 'Invalid tipo' });
     }
 
-    const user = getUserById(req.userId);
+    const user = await getUserById(req.userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -226,21 +198,21 @@ app.post('/api/figurinhas/toggle', verifySession, (req, res) => {
       arr.push(numero); // Adicionar
     }
 
-    saveFigurinhas(req.userId, user);
+    await saveFigurinhas(req.userId, user);
     
     res.json({ 
       figurinha: { selecionId, tipo, numero, coletada: index === -1 },
       selecionFigs: selecionData.coletadas
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err?.message || 'Internal server error' });
   }
 });
 
 // Obter estatísticas
-app.get('/api/stats', verifySession, (req, res) => {
+app.get('/api/stats', verifySession, async (req, res) => {
   try {
-    const user = getUserById(req.userId);
+    const user = await getUserById(req.userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -320,12 +292,12 @@ app.get('/api/stats', verifySession, (req, res) => {
 
     res.json(stats);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err?.message || 'Internal server error' });
   }
 });
 
 // Add duplicate
-app.post('/api/figurinhas/add-duplicate', verifySession, (req, res) => {
+app.post('/api/figurinhas/add-duplicate', verifySession, async (req, res) => {
   try {
     const { selecionId, numero } = req.body;
 
@@ -333,7 +305,7 @@ app.post('/api/figurinhas/add-duplicate', verifySession, (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const user = getUserById(req.userId);
+    const user = await getUserById(req.userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -367,19 +339,19 @@ app.post('/api/figurinhas/add-duplicate', verifySession, (req, res) => {
     // Incrementar duplicata
     selecionData.duplicatas[numero] = (selecionData.duplicatas[numero] || 0) + 1;
 
-    saveFigurinhas(req.userId, user);
+    await saveFigurinhas(req.userId, user);
     
     res.json({ 
       duplicata: { selecionId, numero, count: selecionData.duplicatas[numero] },
       duplicatas: selecionData.duplicatas
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err?.message || 'Internal server error' });
   }
 });
 
 // Remove duplicate
-app.post('/api/figurinhas/remove-duplicate', verifySession, (req, res) => {
+app.post('/api/figurinhas/remove-duplicate', verifySession, async (req, res) => {
   try {
     const { selecionId, numero } = req.body;
 
@@ -387,7 +359,7 @@ app.post('/api/figurinhas/remove-duplicate', verifySession, (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const user = getUserById(req.userId);
+    const user = await getUserById(req.userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -417,20 +389,24 @@ app.post('/api/figurinhas/remove-duplicate', verifySession, (req, res) => {
       }
     }
 
-    saveFigurinhas(req.userId, user);
+    await saveFigurinhas(req.userId, user);
     
     res.json({ 
       duplicata: { selecionId, numero, count: selecionData.duplicatas?.[numero] || 0 },
       duplicatas: selecionData.duplicatas || {}
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err?.message || 'Internal server error' });
   }
 });
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({
+    status: 'OK',
+    storage: getStorageType(),
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Iniciar servidor
