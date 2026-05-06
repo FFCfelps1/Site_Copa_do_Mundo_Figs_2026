@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node -e \"import('vite').then(m=>m.build()).catch(e=>{console.error(e);process.exit(1)})\"",
     "lint": "eslint .",
     "preview": "vite preview"
   },

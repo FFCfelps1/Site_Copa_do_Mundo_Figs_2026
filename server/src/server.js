@@ -441,4 +441,8 @@ if (!process.env.VERCEL) {
   });
 }
 
-export default app;
+// Vercel expects the file to export a request handler.
+// Export a handler that forwards requests to the Express app.
+export default function handler(req, res) {
+  return app(req, res);
+}
