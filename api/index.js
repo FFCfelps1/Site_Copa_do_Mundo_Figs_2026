@@ -1,3 +1,1 @@
-import handler from '../server/src/server.js';
-
-export default handler;
+export { default } from '../server/src/server.js';

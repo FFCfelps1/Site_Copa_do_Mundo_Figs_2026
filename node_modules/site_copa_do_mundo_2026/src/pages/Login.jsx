@@ -24,7 +24,9 @@ export default function Login() {
         await login(email, password);
       }
     } catch (err) {
-      setError(err.toString());
+      const errorMsg = typeof err === 'string' ? err : (err?.message || JSON.stringify(err));
+      setError(errorMsg);
+      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }

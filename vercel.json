@@ -1,5 +1,27 @@
 {
   "version": 2,
+  "buildCommand": "cd client && npm run build",
   "outputDirectory": "client/dist",
-  "buildCommand": "cd client && npm run build"
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.js",
+      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"]
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/client/dist/assets/$1"
+    },
+    {
+      "src": "/(.*\\.(?:css|js|json|woff|woff2|ttf|eot|svg|png|jpg|jpeg|gif|webp|ico))",
+      "dest": "/client/dist/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/client/dist/index.html"
+    }
+  ]
 }
